@@ -509,6 +509,7 @@
   /* 今日の自習（スマートフォンでも押しやすい大きなボタン） */
   function renderToday(sch) {
     const box = $('#today');
+    if (!plan.sheets.length && !plan.tasks.length) { box.hidden = true; return; }
     const today = iso(new Date());
     const row = sch.rows.find((r) => r.date === today);
     if (row) {
