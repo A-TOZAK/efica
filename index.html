@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>中学生の自習プリント｜田川学習習慣室 EFICA</title>
+<meta name="description" content="数学・国語・理科・社会のプリントを、問題だけ、答えつき、答えだけの3つの形から選んでダウンロードできます。自分の自習計画も作れます。">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#fdfcfc">
+<meta name="color-scheme" content="light">
+<meta property="og:type" content="website">
+<meta property="og:title" content="中学生の自習プリント｜田川学習習慣室 EFICA">
+<meta property="og:description" content="プリントを問題だけ・答えつき・答えだけで選んでダウンロード。自習計画もここで作れます。">
+<meta property="og:image" content="https://a-tozak.github.io/efica/assets/img/og.jpg">
+<meta property="og:url" content="https://a-tozak.github.io/efica/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Barlow+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="preload" as="image" href="assets/img/hero-1600.webp" imagesrcset="assets/img/hero-960.webp 960w, assets/img/hero-1600.webp 1600w" imagesizes="100vw">
+<script src="assets/js/app.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#prints">プリントの一覧へ進む</a>
+
+<div class="inapp" id="inapp" hidden>
+  <div class="wrap inapp-in">
+    <p>LINEの中で開いています。保存がうまくいかないときは、ブラウザで開き直してください。</p>
+    <a class="btn btn-sm btn-ink" id="inapp-open" href="./?openExternalBrowser=1">ブラウザで開く</a>
+  </div>
+</div>
+
+<header class="site-header">
+  <div class="wrap header-in">
+    <a class="brand" href="#top" aria-label="田川学習習慣室 EFICA ページの先頭へ">
+      <span class="brand-ja">田川学習習慣室</span>
+      <span class="brand-en">EFICA</span>
+    </a>
+    <nav class="gnav" aria-label="ページ内の案内">
+      <a href="#prints"><span class="gnav-no">01</span>プリント</a>
+      <a href="#plan"><span class="gnav-no">02</span>自習計画</a>
+      <a href="#howto"><span class="gnav-no">03</span>使い方</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <!-- ヒーロー：絵の左45%は白い紙＝文字の席 -->
+  <section class="hero" aria-labelledby="hero-title">
+    <picture class="hero-art">
+      <img src="assets/img/hero-1600.webp" srcset="assets/img/hero-960.webp 960w, assets/img/hero-1600.webp 1600w" sizes="100vw" width="1600" height="1067" alt="学習室の長い机で、中学生の男子と女子がならんでプリントに書きこんでいる水彩画。手前に空いたいすが1つある。">
+    </picture>
+    <div class="wrap hero-in">
+      <div class="hero-text">
+        <p class="eyebrow">PRINTS &amp; STUDY PLAN<span class="eyebrow-sep"></span>JUNIOR HIGH</p>
+        <h1 id="hero-title">中学生の<br>自習プリント</h1>
+        <p class="hero-lead">数学・国語・理科・社会のプリントを、問題だけ、答えつき、答えだけの3つの形から選んでダウンロードできます。自分の自習計画も、このページで作れます。</p>
+        <div class="hero-cta">
+          <a class="btn btn-ink btn-lg" href="#prints">プリントをさがす</a>
+          <a class="btn btn-line btn-lg" href="#plan">自習計画をつくる</a>
+        </div>
+      </div>
+      <dl class="stats" id="stats" aria-label="教科ごとのプリントの枚数"></dl>
+    </div>
+  </section>
+
+  <!-- 01 プリント -->
+  <section class="sec sec-prints" id="prints" aria-labelledby="prints-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="sec-no"><span class="sec-num">01</span><span class="sec-en">PRINTS</span></p>
+        <h2 id="prints-title">プリントをさがす</h2>
+        <p class="sec-lead">学年と教科を選んでから、ダウンロードの形を選んでください。1枚ずつでも、章ごとにまとめてでも保存できます。プリントは、田川地区の中学校で使っている教科書の単元の順に並べています。</p>
+        <img class="sec-art sec-art-prints" src="assets/img/prints-720.webp" width="720" height="720" alt="" loading="lazy">
+      </div>
+
+      <div class="filters" id="filters">
+        <div class="filter">
+          <p class="filter-label" id="lb-grade">学年</p>
+          <div class="seg" role="group" aria-labelledby="lb-grade" data-key="grade"></div>
+        </div>
+        <div class="filter">
+          <p class="filter-label" id="lb-subject">教科</p>
+          <div class="seg seg-subject" role="group" aria-labelledby="lb-subject" data-key="subject"></div>
+        </div>
+        <div class="filter filter-mode">
+          <p class="filter-label" id="lb-mode">形</p>
+          <div class="mode-box">
+            <div class="seg seg-mode" role="group" aria-labelledby="lb-mode" data-key="mode"></div>
+            <p class="mode-help" id="mode-help" aria-live="polite"></p>
+          </div>
+        </div>
+        <div class="filter filter-search">
+          <label class="filter-label" for="q">ことば</label>
+          <div class="search">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
+            <input id="q" type="search" placeholder="例：方程式、雨温図、古文" autocomplete="off" enterkeyhint="search">
+            <button class="search-clear" type="button" id="q-clear" hidden aria-label="ことばを消す">消す</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="results-head">
+        <p class="results-title" id="results-title" aria-live="polite"></p>
+        <button class="textbtn" type="button" id="select-visible">この一覧を全部えらぶ</button>
+      </div>
+      <div class="list" id="list"></div>
+    </div>
+  </section>
+
+  <!-- 02 自習計画 -->
+  <section class="sec sec-plan" id="plan" aria-labelledby="plan-title">
+    <div class="wrap">
+      <div class="sec-head sec-head-plan">
+        <img class="sec-art sec-art-plan" src="assets/img/plan-900.webp" width="900" height="900" alt="" loading="lazy">
+        <div>
+          <p class="sec-no"><span class="sec-num">02</span><span class="sec-en">STUDY PLAN</span></p>
+          <h2 id="plan-title">自習計画をつくる</h2>
+          <p class="sec-lead">名前・目標・期間・時間・内容を入れると、計画表がその場でできあがります。できた計画表は、PDFや画像にして保存したり、LINEで送ったりできます。</p>
+          <p class="privacy"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="1.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>入れた名前や計画は、このブラウザの中にだけ保存されます。インターネットには送られません。</p>
+        </div>
+      </div>
+
+      <div class="plan-grid">
+        <form class="plan-form" id="plan-form" autocomplete="off" novalidate>
+          <fieldset class="step">
+            <legend class="step-head"><span class="step-no">1</span><span class="step-title">名前と学年</span></legend>
+            <div class="step-body two">
+              <label class="field"><span class="field-label">名前</span><input type="text" name="name" maxlength="20" placeholder="例：田川 さくら"></label>
+              <label class="field field-s"><span class="field-label">学年</span>
+                <select name="grade"><option value="1">中学1年</option><option value="2">中学2年</option><option value="3">中学3年</option></select>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="step">
+            <legend class="step-head"><span class="step-no">2</span><span class="step-title">目標</span></legend>
+            <div class="step-body">
+              <label class="field"><span class="field-label sr">目標</span><textarea name="goal" rows="2" maxlength="80" placeholder="例：毎日30分は勉強する"></textarea></label>
+              <div class="chips" data-fill="goal" aria-label="目標の例">
+                <button type="button" class="chip">毎日30分は勉強する</button>
+                <button type="button" class="chip">計算ミスを減らす</button>
+                <button type="button" class="chip">次のテストで、今より10点上げる</button>
+                <button type="button" class="chip">苦手な単元を一つ減らす</button>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="step">
+            <legend class="step-head"><span class="step-no">3</span><span class="step-title">期間</span></legend>
+            <div class="step-body">
+              <div class="two">
+                <label class="field"><span class="field-label">はじめる日</span><input type="date" name="start"></label>
+                <label class="field"><span class="field-label">おわる日</span><input type="date" name="end"></label>
+              </div>
+              <div class="chips" id="period-chips" aria-label="期間をまとめて決める">
+                <button type="button" class="chip" data-days="7">1週間</button>
+                <button type="button" class="chip" data-days="14">2週間</button>
+                <button type="button" class="chip" data-days="28">4週間</button>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="step">
+            <legend class="step-head"><span class="step-no">4</span><span class="step-title">時間</span></legend>
+            <div class="step-body">
+              <p class="field-label" id="lb-days">勉強する曜日</p>
+              <div class="days" role="group" aria-labelledby="lb-days" id="days"></div>
+              <div class="two">
+                <label class="field"><span class="field-label">1回の時間</span>
+                  <select name="minutes">
+                    <option value="15">15分</option><option value="20">20分</option><option value="30">30分</option>
+                    <option value="40">40分</option><option value="45">45分</option><option value="60">60分</option>
+                    <option value="90">90分</option><option value="120">120分</option>
+                  </select>
+                </label>
+                <label class="field"><span class="field-label">はじめる時刻</span><input type="time" name="time" step="300"></label>
+              </div>
+              <p class="calc" id="plan-calc" aria-live="polite"></p>
+            </div>
+          </fieldset>
+
+          <fieldset class="step">
+            <legend class="step-head"><span class="step-no">5</span><span class="step-title">内容</span></legend>
+            <div class="step-body">
+              <p class="field-label">プリント</p>
+              <ol class="picked" id="picked"></ol>
+              <div class="picked-tools">
+                <button type="button" class="btn btn-line btn-sm" id="go-pick">プリントを選ぶ</button>
+                <label class="field field-inline"><span class="field-label">1日に</span>
+                  <select name="perDay"><option value="1">1枚</option><option value="2">2枚</option><option value="3">3枚</option></select>
+                </label>
+              </div>
+              <label class="check-line"><input type="checkbox" name="redo"><span class="box" aria-hidden="true"></span>プリントが終わったあとの日は「まちがえた問題のやり直し」を入れる</label>
+              <p class="warn" id="plan-warn" hidden></p>
+
+              <p class="field-label field-label-gap" id="lb-tasks">毎回やること</p>
+              <ul class="tasks" id="tasks"></ul>
+              <div class="task-add">
+                <input type="text" id="task-input" maxlength="30" placeholder="例：英単語を10こ覚える" aria-labelledby="lb-tasks" enterkeyhint="done">
+                <button type="button" class="btn btn-ink btn-sm" id="task-add">足す</button>
+              </div>
+              <div class="chips" data-fill="task" aria-label="毎回やることの例">
+                <button type="button" class="chip">英単語を10こ覚える</button>
+                <button type="button" class="chip">漢字を10こ練習する</button>
+                <button type="button" class="chip">教科書を1ページ読む</button>
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="plan-reset">
+            <button type="button" class="textbtn" id="plan-reset">新しい計画にする（入れた内容を消す）</button>
+          </div>
+        </form>
+
+        <aside class="plan-out" aria-label="できあがった計画表">
+          <div class="out-head">
+            <p class="out-title">できあがり</p>
+            <p class="progress" id="progress" aria-live="polite"></p>
+          </div>
+          <div class="today" id="today" hidden></div>
+          <div class="preview" id="preview"></div>
+          <p class="out-note">計画表の行を押すと、「できた」の印がつきます。もう一度押すと消えます。</p>
+          <div class="out-actions">
+            <button type="button" class="btn btn-ink" id="out-pdf"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>PDFで保存</button>
+            <button type="button" class="btn btn-line" id="out-img"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1.5"/><circle cx="9.5" cy="10" r="1.6"/><path d="m5 17 4.5-4 3.5 3 2.5-2 3.5 3"/></svg>画像で保存・送る</button>
+            <button type="button" class="btn btn-line" id="out-line"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 4.5c-4.7 0-8.5 3-8.5 6.8 0 3.4 3 6.2 7.1 6.7.3.1.6.3.7.6v2.2l2.6-2c3.6-1 6.6-3.9 6.6-7.5 0-3.8-3.8-6.8-8.5-6.8Z"/></svg>LINEに文章で送る</button>
+            <button type="button" class="btn btn-line" id="out-cal"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>カレンダーに入れる</button>
+            <button type="button" class="btn btn-line" id="out-print"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 9V4h10v5M7 17H4.5V9h15v8H17M7 14h10v6H7z"/></svg>印刷する</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 使い方 -->
+  <section class="sec sec-how" id="howto" aria-labelledby="how-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="sec-no"><span class="sec-num">03</span><span class="sec-en">HOW TO</span></p>
+        <h2 id="how-title">使い方</h2>
+      </div>
+      <ol class="how">
+        <li>
+          <p class="how-no">STEP 1</p>
+          <h3>選ぶ</h3>
+          <p>学年、教科、形を選んで、プリントを保存します。章ごとにまとめて保存することもできます。</p>
+        </li>
+        <li>
+          <p class="how-no">STEP 2</p>
+          <h3>解く</h3>
+          <p>印刷して解きます。答えつきや答えだけの形を使うと、自分で丸つけができます。</p>
+        </li>
+        <li>
+          <p class="how-no">STEP 3</p>
+          <h3>続ける</h3>
+          <p>自習計画を作り、勉強した日に「できた」の印をつけます。計画表は、画像やPDFにしてLINEで送れます。</p>
+        </li>
+      </ol>
+      <dl class="notes">
+        <div><dt>印刷するとき</dt><dd>用紙はA4、倍率は100％（実際のサイズ）にして印刷してください。</dd></div>
+        <div><dt>LINEの中で開いたとき</dt><dd>保存がうまくいかないことがあります。そのときは、メニューの「ブラウザで開く」を選んでください。</dd></div>
+        <div><dt>保存したファイルの場所</dt><dd>iPhoneやiPadでは、「ファイル」アプリの「ダウンロード」に入ります。Androidでは、「ファイル」アプリなどの「ダウンロード」に入ります。</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="closing" aria-label="おわりに">
+    <img class="closing-art" src="assets/img/closing-1600.webp" srcset="assets/img/closing-960.webp 960w, assets/img/closing-1600.webp 1600w" sizes="100vw" width="1600" height="1067" alt="夕方の道を、中学生の2人が並んで歩いていく後ろ姿の水彩画。遠くの丘に2本のれんがの煙突が見える。" loading="lazy">
+    <p class="closing-line">今日の自習、おつかれさまでした。</p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-in">
+    <p class="footer-brand"><span class="brand-ja">田川学習習慣室</span><span class="brand-en">EFICA</span></p>
+    <div class="footer-text">
+      <p>このサイトのプリントは、学習室で使うために作ったものです。</p>
+      <p class="footer-meta"><span>教材 © School Stock</span><span id="built"></span></p>
+    </div>
+  </div>
+</footer>
+
+<!-- 選んだプリントの帯（1枚でも選ぶと出る） -->
+<div class="selbar" id="selbar" hidden>
+  <div class="wrap selbar-in">
+    <p class="selbar-count" aria-live="polite"><b id="sel-n">0</b>枚えらんでいます<span id="sel-sub"></span></p>
+    <div class="selbar-actions">
+      <button type="button" class="btn btn-sm btn-quiet" id="sel-clear"><span class="hide-sp">えらぶのを</span>やめる</button>
+      <button type="button" class="btn btn-sm btn-inv" id="sel-plan"><span class="hide-sp">自習</span>計画に入れる</button>
+      <button type="button" class="btn btn-sm btn-accent" id="sel-merge">まとめて保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 中を見る -->
+<dialog class="viewer" id="viewer" aria-labelledby="viewer-title">
+  <div class="viewer-head">
+    <div>
+      <p class="viewer-sub" id="viewer-sub"></p>
+      <h3 id="viewer-title"></h3>
+    </div>
+    <button type="button" class="viewer-close" id="viewer-close" aria-label="閉じる"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="viewer-body" id="viewer-body"></div>
+  <div class="viewer-foot" id="viewer-foot"></div>
+</dialog>
+
+<!-- カレンダー -->
+<dialog class="sheetdlg" id="cal-dlg" aria-labelledby="cal-title">
+  <h3 id="cal-title">カレンダーに入れる</h3>
+  <p class="sheetdlg-lead" id="cal-lead"></p>
+  <div class="sheetdlg-actions">
+    <button type="button" class="btn btn-ink" id="cal-ics">iPhone・iPad・パソコンのカレンダー</button>
+    <a class="btn btn-line" id="cal-google" href="#" target="_blank" rel="noopener">Googleカレンダー</a>
+  </div>
+  <label class="check-line"><input type="checkbox" id="cal-alarm" checked><span class="box" aria-hidden="true"></span>はじまる5分前に知らせる（iPhone・iPad・パソコンのカレンダーのとき）</label>
+  <p class="sheetdlg-note">Googleカレンダーには、勉強する曜日と時刻の予定が入ります。その日のやることは、計画表で確かめてください。</p>
+  <button type="button" class="textbtn sheetdlg-close" id="cal-close">閉じる</button>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<!-- 書き出し用の計画表（画面の外に置く。印刷ではこれだけが出る） -->
+<div id="sheet-stage" aria-hidden="true"></div>
+</body>
+</html>
