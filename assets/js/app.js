@@ -1,7 +1,9 @@
-/* 田川学習習慣室 EFICA 教材サイト
- * 1. プリント：学年・教科・形（問題だけ／答えつき／答えだけ）で絞り、1枚ずつ・章ごと・選んだ分をまとめて保存
- * 2. 自習計画：名前・目標・期間・時間・内容から計画表を作り、PDF・画像・LINE・カレンダーへ出す
- * 入れた内容はこの端末のブラウザ（localStorage）にだけ置く。外へは送らない。
+/* 田川学習習慣室 EFICA（v2）
+ * スマホで開いてすぐ使う形。タブは3つ。
+ *   プリント：教科を押して、章を開き、「問題」「答え」を押すだけ（探させない）
+ *   カード　：一問一答。すぐ10問。覚えた・まだ、を端末に覚えておく
+ *   計画表　：期間・曜日・やることから表を作り、画像・LINE・カレンダー・PDFへ
+ * 入れた内容と覚えた記録は、この端末のブラウザ（localStorage）にだけ置く。外へは送らない。
  */
 (() => {
   'use strict';
@@ -10,13 +12,13 @@
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const DOW = ['日', '月', '火', '水', '木', '金', '土'];
-  const IC_DL = '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>';
   const IC_X = '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+  const IC_DOWN = '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>';
 
   const MODES = {
-    q: { label: '問題だけ', suffix: '問題', help: '答えのページを外した形です。配るときや、自分で解くときに使います。', file: (s) => `files/${s.subject}/${s.id}_q.pdf`, pages: (s) => s.qPages, size: (s) => s.size.q },
-    full: { label: '答えつき', suffix: '答えつき', help: '問題のあとに、答えと解説のページが続く形です。', file: (s) => `files/${s.subject}/${s.id}.pdf`, pages: (s) => s.qPages + s.aPages, size: (s) => s.size.full },
-    a: { label: '答えだけ', suffix: '答え', help: '答えと解説のページだけの形です。丸つけのときに使います。', file: (s) => `files/${s.subject}/${s.id}_a.pdf`, pages: (s) => s.aPages, size: (s) => s.size.a },
+    q: { label: '問題だけ', suffix: '問題', file: (s) => `files/${s.subject}/${s.id}_q.pdf`, pages: (s) => s.qPages },
+    full: { label: '問題と答え', suffix: '問題と答え', file: (s) => `files/${s.subject}/${s.id}.pdf`, pages: (s) => s.qPages + s.aPages },
+    a: { label: '答えだけ', suffix: '答え', file: (s) => `files/${s.subject}/${s.id}_a.pdf`, pages: (s) => s.aPages },
   };
 
   /* ── 端末に覚えておく（使えないときは覚えないだけ） ── */
@@ -29,9 +31,8 @@
   let CAT = null;
   const SUBJ = {};
   const BY_ID = new Map();
-  const ui = Object.assign({ grade: 1, subject: 'math', mode: 'q' }, store.get('efica-ui', {}));
-  let query = '';
-  const selected = new Set();
+  const ui = Object.assign({ grade: 1, subject: 'math', csubject: 'math' }, store.get('efica-ui', {}));
+  const saveUI = () => store.set('efica-ui', { grade: ui.grade, subject: ui.subject, csubject: ui.csubject });
 
   /* ── 小さな道具 ── */
   let toastTimer;
@@ -42,14 +43,9 @@
     clearTimeout(toastTimer);
     if (ms) toastTimer = setTimeout(() => { t.hidden = true; }, ms);
   }
-  const mb = (n) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)}MB` : `${Math.max(1, Math.round(n / 1024))}KB`);
-  const norm = (s) => String(s || '').normalize('NFKC').toLowerCase().replace(/\s+/g, '');
   const sheetName = (s) => `${s.title}${s.no ? ' ' + s.no : ''}`;
   const fileSafe = (s) => String(s).replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_');
   const gradeLabel = (g) => `中${g}`;
-  function dlName(s, mode) {
-    return fileSafe(`${gradeLabel(s.grade)}${SUBJ[s.subject].name}_${s.title}${s.no || ''}_${MODES[mode].suffix}`) + '.pdf';
-  }
   function loadScript(src) {
     return new Promise((res, rej) => {
       if (document.querySelector(`script[src="${src}"]`)) return res();
@@ -77,132 +73,83 @@
     }
     saveBlob(blob, name);
   }
+  const ic = (name, cls = 'ic') => (name ? `<svg class="${cls}" aria-hidden="true"><use href="#i-${name}"></use></svg>` : '');
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i -= 1) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
-  /* ════════════════ 1. プリント ════════════════ */
-
-  function counts(grade) {
-    const c = {};
-    for (const s of CAT.sheets) if (s.grade === grade) c[s.subject] = (c[s.subject] || 0) + 1;
-    return c;
-  }
-
-  function renderStats() {
-    const c = {};
-    for (const s of CAT.sheets) c[s.subject] = (c[s.subject] || 0) + 1;
-    const d = new Date(CAT.built + 'T00:00:00');
-    $('#stats').innerHTML = CAT.subjects.map((sub) =>
-      `<div><dt>${sub.name}<span class="en">${sub.en}</span></dt><dd>${c[sub.key] || 0}<small>枚</small></dd></div>`
-    ).join('') + `<p class="stats-asof">${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日の枚数です。プリントは少しずつ増えていきます。</p>`;
-    $('#built').textContent = `更新 ${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
-  }
-
-  function renderFilters() {
-    const c = counts(ui.grade);
-    $('.seg[data-key="grade"]').innerHTML = [1, 2, 3].map((g) =>
-      `<button type="button" data-v="${g}" aria-pressed="${ui.grade === g && !query}">中学${g}年</button>`).join('');
-    $('.seg[data-key="subject"]').innerHTML = CAT.subjects.map((sub) =>
-      `<button type="button" data-v="${sub.key}" aria-pressed="${ui.subject === sub.key && !query}"><span class="kanji" aria-hidden="true">${sub.kanji}</span>${sub.name}<span class="count">${c[sub.key] || 0}</span></button>`).join('');
-    $('.seg[data-key="mode"]').innerHTML = Object.entries(MODES).map(([k, m]) =>
-      `<button type="button" data-v="${k}" aria-pressed="${ui.mode === k}">${m.label}</button>`).join('');
-    $('#mode-help').textContent = MODES[ui.mode].help;
-  }
-
-  function visible() {
-    const q = norm(query);
-    if (q) {
-      return CAT.sheets.filter((s) => norm(`${SUBJ[s.subject].name}${s.bunya}${s.unit}${s.section}${s.title}${s.no}`).includes(q));
-    }
-    return CAT.sheets.filter((s) => s.grade === ui.grade && s.subject === ui.subject);
-  }
-
-  function groupOf(list) {
+  /* 章ごとに並べる（教科書の順のまま） */
+  function unitsOf(subject, grade) {
     const m = new Map();
-    for (const s of list) {
-      const k = `${s.subject}|${s.grade}|${s.bunya}|${s.unit}`;
-      if (!m.has(k)) m.set(k, { key: k, subject: s.subject, grade: s.grade, bunya: s.bunya, unit: s.unit, items: [] });
-      m.get(k).items.push(s);
+    for (const s of CAT.sheets) {
+      if (s.subject !== subject || s.grade !== grade) continue;
+      const key = `${subject}|${grade}|${s.bunya}|${s.unit}`;
+      if (!m.has(key)) {
+        const unit = s.unit || 'そのほか';
+        const mm = /^(第\d+部\d+章|\d+章|単元\d+|\d+)\s+(.+)$/.exec(unit);
+        m.set(key, { key, subject, grade, bunya: s.bunya, unit, no: mm ? mm[1] : '', name: (mm ? mm[2] : unit).replace(/\^2/g, '²'),
+          art: (CAT.art && CAT.art[key]) || (CAT.icons && CAT.icons[subject]) || '', items: [] });
+      }
+      m.get(key).items.push(s);
     }
     return [...m.values()];
   }
-
-  function rowHTML(s) {
-    const m = MODES[ui.mode];
-    const pages = m.pages(s);
-    const meta = [s.section, `問題${s.qPages}ページ`, s.aPages ? `答え${s.aPages}ページ` : '答えなし'].filter(Boolean);
-    const on = selected.has(s.id);
-    const btn = pages
-      ? `<a class="dl" href="${m.file(s)}" download="${esc(dlName(s, ui.mode))}" aria-label="${esc(sheetName(s))}を${m.label}でダウンロード">${IC_DL}${m.label}<span class="dl-size">${mb(m.size(s))}</span></a>`
-      : `<span class="dl is-none">${m.label}はありません</span>`;
-    return `<li class="row${on ? ' is-on' : ''}" data-id="${s.id}">
-      <label class="check"><input type="checkbox" ${on ? 'checked' : ''} aria-label="${esc(sheetName(s))}をえらぶ"><span class="box" aria-hidden="true"></span></label>
-      <button type="button" class="thumb" data-act="view" aria-label="${esc(sheetName(s))}の中を見る"><img src="${s.thumb}" alt="" loading="lazy" width="58" height="82"></button>
-      <div class="row-body"><p class="row-title">${esc(s.title)}${s.no ? `<span class="no">${esc(s.no)}</span>` : ''}</p><p class="row-meta">${meta.map((x) => `<span>${esc(x)}</span>`).join('')}</p></div>
-      ${btn}
-    </li>`;
+  function subjectButtons(kind) {
+    const c = {};
+    for (const s of CAT.sheets) {
+      if (s.grade !== ui.grade) continue;
+      c[s.subject] = (c[s.subject] || 0) + (kind === 'prints' ? 1 : (s.cards || 0));
+    }
+    const cur = kind === 'prints' ? ui.subject : ui.csubject;
+    return CAT.subjects.map((sub) => `<button type="button" data-v="${sub.key}" data-subj="${sub.key}" aria-pressed="${cur === sub.key}"${c[sub.key] ? '' : ' class="zero"'}>${ic(CAT.icons && CAT.icons[sub.key])}<span class="s">${sub.name}</span><span class="n">${c[sub.key] ? c[sub.key] + (kind === 'prints' ? '枚' : '問') : 'じゅんび中'}</span></button>`).join('');
   }
 
-  function renderList() {
-    const list = visible();
+  /* ════════════════ 1. プリント ════════════════ */
+
+  function sheetHTML(s) {
+    const meta = [s.section, `問題${s.qPages}ページ`].filter(Boolean);
+    const a = s.aPages
+      ? `<a class="a" href="${MODES.a.file(s)}" target="_blank" rel="noopener">答え</a>`
+      : '<span class="none">答えはありません</span>';
+    return `<div class="sheet" data-id="${s.id}">
+      <img src="${s.thumb}" alt="" loading="lazy" width="44" height="62">
+      <p class="sheet-title">${esc(sheetName(s))}</p>
+      <p class="sheet-meta">${meta.map((x) => `<span>${esc(x)}</span>`).join('')}</p>
+      <div class="sheet-btns"><a class="q" href="${MODES.q.file(s)}" target="_blank" rel="noopener">問題</a>${a}</div>
+    </div>`;
+  }
+
+  function renderPrints() {
+    $('.subjects[data-for="prints"]').innerHTML = subjectButtons('prints');
+    $('#view-prints').dataset.subj = ui.subject;
+    const units = unitsOf(ui.subject, ui.grade);
     const sub = SUBJ[ui.subject];
-    if (query) {
-      $('#results-title').innerHTML = `<b>「${esc(query)}」でさがした結果</b><span class="num">${list.length}</span>枚`;
-    } else {
-      $('#results-title').innerHTML = `<b>中学${ui.grade}年・${sub.name}</b><span class="num">${list.length}</span>枚`;
-    }
-    $('#select-visible').hidden = !list.length;
-    if (!list.length) {
-      $('#list').innerHTML = query
-        ? `<div class="empty"><b>見つかりませんでした。</b>ほかのことばでさがすか、学年と教科から選んでください。</div>`
-        : `<div class="empty"><b>中学${ui.grade}年の${sub.name}は、いま準備しています。</b>できたものから、ここに並びます。</div>`;
+    const last = store.get('efica-last', {})[`${ui.subject}-${ui.grade}`];
+    const lastUnit = units.find((u) => u.key === last);
+    if (!units.length) {
+      $('#units').innerHTML = `<p class="empty">中${ui.grade}の${sub.name}のプリントは、いま作っています。</p>`;
+      $('#resume').hidden = true;
       return;
     }
-    $('#list').innerHTML = groupOf(list).map((g) => {
-      const allOn = g.items.every((s) => selected.has(s.id));
-      const tag = query ? `<span class="tag">中${g.grade}・${SUBJ[g.subject].name}</span>` : '';
-      const bunya = g.bunya ? `<span class="bunya">${esc(g.bunya)}</span>` : '';
-      return `<section class="group" data-key="${esc(g.key)}">
-        <div class="group-head">
-          <h3 class="group-title">${tag}${bunya}${esc(g.unit || 'そのほか')}<span class="n">${g.items.length}枚</span></h3>
-          <div class="group-actions">
-            <button type="button" class="textbtn" data-act="group-select">${allOn ? 'えらぶのをやめる' : '全部えらぶ'}</button>
-            <button type="button" class="btn btn-sm btn-line" data-act="group-merge">${IC_DL}この章をまとめて保存</button>
-          </div>
-        </div>
-        <ol>${g.items.map(rowHTML).join('')}</ol>
-      </section>`;
-    }).join('');
+    $('#units').innerHTML = units.map((u) => `<details class="unit" data-key="${esc(u.key)}"${u === lastUnit ? ' open' : ''}>
+      <summary><span class="art">${ic(u.art)}</span><span class="t"><span class="no">${esc([u.bunya, u.no].filter(Boolean).join(' '))}</span>${esc(u.name)}</span><span class="n">${u.items.length}枚</span>${IC_DOWN}</summary>
+      ${u.items.map(sheetHTML).join('')}
+      <div class="unit-foot"><button type="button" class="textbtn" data-act="bulk">この章をまとめて保存（印刷する人むけ）</button></div>
+    </details>`).join('');
+    if (lastUnit) {
+      $('#resume').innerHTML = `<button type="button">前に開いた章：${esc(lastUnit.unit)}</button>`;
+      $('#resume').hidden = false;
+    } else $('#resume').hidden = true;
   }
 
-  function renderSelbar() {
-    const n = selected.size;
-    document.body.classList.toggle('has-selbar', n > 0);
-    $('#selbar').hidden = n === 0;
-    $('#sel-n').textContent = n;
-    if (n) {
-      const m = MODES[ui.mode];
-      const pages = [...selected].reduce((t, id) => t + m.pages(BY_ID.get(id)), 0);
-      $('#sel-sub').textContent = `${m.label}で${pages}ページ`;
-      $('#sel-merge').innerHTML = `まとめて保存<span class="hide-sp">（${m.label}）</span>`;
-    }
+  function rememberUnit(key) {
+    const m = store.get('efica-last', {});
+    m[`${ui.subject}-${ui.grade}`] = key;
+    store.set('efica-last', m);
   }
 
-  function renderAll() {
-    renderFilters();
-    renderList();
-    renderSelbar();
-    store.set('efica-ui', { grade: ui.grade, subject: ui.subject, mode: ui.mode });
-  }
-
-  async function mergeSave(sheets, name) {
-    const m = MODES[ui.mode];
+  async function mergeSave(sheets, mode, name) {
+    const m = MODES[mode];
     const use = sheets.filter((s) => m.pages(s) > 0);
-    if (!use.length) { toast(`${m.label}のページがありません。`); return; }
-    if (use.length === 1) {
-      const a = document.createElement('a');
-      a.href = m.file(use[0]); a.download = dlName(use[0], ui.mode);
-      document.body.appendChild(a); a.click(); a.remove();
-      return;
-    }
+    if (!use.length) { toast('入れるページがありません。'); return; }
     try {
       toast('まとめる準備をしています。', 0);
       await loadScript('assets/vendor/pdf-lib.min.js');
@@ -218,105 +165,209 @@
         const pages = await out.copyPages(src, src.getPageIndices());
         pages.forEach((p) => out.addPage(p));
       }
-      const title = name.replace(/\.pdf$/, '');
-      out.setTitle(title); out.setAuthor('School Stock'); out.setCreator(''); out.setProducer('');
-      const bytes = await out.save();
-      saveBlob(new Blob([bytes], { type: 'application/pdf' }), name);
-      toast(`${use.length}枚を1つのPDFにまとめました。`);
+      out.setTitle(name.replace(/\.pdf$/, '')); out.setAuthor('School Stock'); out.setCreator(''); out.setProducer('');
+      saveBlob(new Blob([await out.save()], { type: 'application/pdf' }), name);
+      toast(`${use.length}枚を1つのPDFにしました。`);
     } catch (e) {
       console.error(e);
-      toast('まとめられませんでした。通信のよい所で、もう一度ためしてください。', 5000);
+      toast('まとめられませんでした。電波のよい所で、もう一度ためしてください。', 5000);
     }
   }
 
-  function openViewer(s) {
-    const sub = SUBJ[s.subject];
-    $('#viewer-sub').textContent = `中学${s.grade}年・${sub.name}　${s.unit}`;
-    $('#viewer-title').textContent = sheetName(s);
-    $('#viewer-body').innerHTML = s.previews.map((p, i) =>
-      `<img src="${p}" alt="${esc(sheetName(s))}の問題 ${i + 1}ページ目" width="1000" height="1414">`).join('');
-    $('#viewer-foot').innerHTML = Object.entries(MODES).map(([k, m]) => m.pages(s)
-      ? `<a class="dl" href="${m.file(s)}" download="${esc(dlName(s, k))}">${IC_DL}${m.label}<span class="dl-size">${mb(m.size(s))}</span></a>`
-      : '').join('');
-    $('#viewer').showModal();
-    $('#viewer-body').scrollTop = 0;
+  let bulkUnit = null;
+  function bindPrints() {
+    $('.subjects[data-for="prints"]').addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      ui.subject = b.dataset.v; saveUI(); renderPrints();
+    });
+    $('#units').addEventListener('toggle', (e) => {
+      const d = e.target;
+      if (d.classList && d.classList.contains('unit') && d.open) rememberUnit(d.dataset.key);
+    }, true);
+    $('#units').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-act="bulk"]'); if (!b) return;
+      const key = b.closest('.unit').dataset.key;
+      bulkUnit = unitsOf(ui.subject, ui.grade).find((u) => u.key === key);
+      if (!bulkUnit) return;
+      $('#bulk-lead').textContent = `${bulkUnit.unit}（${bulkUnit.items.length}枚）を、1つのPDFにします。`;
+      $('#bulk-dlg').showModal();
+    });
+    $('#bulk-dlg').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget || e.target.closest('[data-close]')) { $('#bulk-dlg').close(); return; }
+      const b = e.target.closest('[data-mode]'); if (!b || !bulkUnit) return;
+      $('#bulk-dlg').close();
+      const u = bulkUnit; const mode = b.dataset.mode;
+      const name = fileSafe(`${gradeLabel(u.grade)}${SUBJ[u.subject].name}_${u.bunya ? u.bunya + '_' : ''}${u.unit}_${MODES[mode].suffix}`) + '.pdf';
+      mergeSave(u.items, mode, name);
+    });
+    $('#resume').addEventListener('click', () => {
+      const d = $('.unit[open]', $('#units'));
+      if (d) d.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
 
-  function bindPrints() {
-    $('#filters').addEventListener('click', (e) => {
-      const b = e.target.closest('.seg button');
-      if (!b) return;
-      const key = b.parentElement.dataset.key;
-      if (key === 'grade') ui.grade = Number(b.dataset.v);
-      if (key === 'subject') ui.subject = b.dataset.v;
-      if (key === 'mode') ui.mode = b.dataset.v;
-      if (key !== 'mode' && query) { query = ''; $('#q').value = ''; $('#q-clear').hidden = true; }
-      renderAll();
-    });
-    let qt;
-    $('#q').addEventListener('input', (e) => {
-      clearTimeout(qt);
-      qt = setTimeout(() => {
-        query = e.target.value.trim();
-        $('#q-clear').hidden = !query;
-        renderFilters();
-        renderList();
-      }, 160);
-    });
-    $('#q-clear').addEventListener('click', () => {
-      query = ''; $('#q').value = ''; $('#q-clear').hidden = true; renderFilters(); renderList(); $('#q').focus();
-    });
-    $('#list').addEventListener('change', (e) => {
-      const row = e.target.closest('.row');
-      if (!row) return;
-      if (e.target.checked) selected.add(row.dataset.id); else selected.delete(row.dataset.id);
-      row.classList.toggle('is-on', e.target.checked);
-      const g = row.closest('.group');
-      const ids = $$('.row', g).map((r) => r.dataset.id);
-      $('[data-act="group-select"]', g).textContent = ids.every((id) => selected.has(id)) ? 'えらぶのをやめる' : '全部えらぶ';
-      renderSelbar();
-    });
-    $('#list').addEventListener('click', (e) => {
-      const b = e.target.closest('[data-act]');
-      if (!b) return;
-      const act = b.dataset.act;
-      if (act === 'view') { openViewer(BY_ID.get(b.closest('.row').dataset.id)); return; }
-      const g = b.closest('.group');
-      const items = $$('.row', g).map((r) => BY_ID.get(r.dataset.id));
-      if (act === 'group-select') {
-        const allOn = items.every((s) => selected.has(s.id));
-        items.forEach((s) => (allOn ? selected.delete(s.id) : selected.add(s.id)));
-        renderList(); renderSelbar();
+  /* ════════════════ 2. カード ════════════════ */
+
+  const CARD_CACHE = new Map();
+  let learned = store.get('efica-learned', {});
+  async function loadCards(subject, grade) {
+    const key = `${subject}-${grade}`;
+    if (CARD_CACHE.has(key)) return CARD_CACHE.get(key);
+    let box = {};
+    try {
+      const r = await fetch(`data/cards/${key}.json`);
+      if (r.ok) box = await r.json();
+    } catch { /* カードがない教科 */ }
+    CARD_CACHE.set(key, box);
+    return box;
+  }
+  function cardsOfUnit(box, u) {
+    return u.items.flatMap((s) => (box[s.id] || []).map((c) => Object.assign({ deck: u.unit }, c)));
+  }
+
+  async function renderCards() {
+    $('.subjects[data-for="cards"]').innerHTML = subjectButtons('cards');
+    $('#view-cards').dataset.subj = ui.csubject;
+    $('#flash').dataset.subj = ui.csubject;
+    $('#quick-icon').innerHTML = ic(CAT.icons && CAT.icons[ui.csubject]);
+    const sub = SUBJ[ui.csubject];
+    const units = unitsOf(ui.csubject, ui.grade).filter((u) => u.items.some((s) => s.cards));
+    $('#quick-sub').textContent = `中${ui.grade}・${sub.name}から、まぜて出します`;
+    $('#quick').disabled = !units.length;
+    if (!units.length) {
+      $('#decks').innerHTML = `<p class="empty">中${ui.grade}の${sub.name}のカードは、いま作っています。</p>`;
+      return;
+    }
+    const box = await loadCards(ui.csubject, ui.grade);
+    $('#decks').innerHTML = units.map((u) => {
+      const cards = cardsOfUnit(box, u);
+      const ok = cards.filter((c) => learned[c.id]).length;
+      const pct = cards.length ? Math.round((ok / cards.length) * 100) : 0;
+      return `<button type="button" class="deck" data-key="${esc(u.key)}">
+        <span class="art">${ic(u.art)}</span>
+        <span class="deck-t"><span class="no">${esc([u.bunya, u.no].filter(Boolean).join(' '))}</span>${esc(u.name)}</span>
+        <span class="deck-n">${ok}／${cards.length}問</span>
+        <span class="deck-bar" aria-hidden="true"><i style="width:${pct}%"></i></span>
+      </button>`;
+    }).join('');
+  }
+
+  /* めくる画面 */
+  const fl = { pool: [], list: [], i: 0, back: false, miss: [], hit: 0, title: '' };
+  function pick10(pool) {
+    const notyet = shuffle(pool.filter((c) => !learned[c.id]));
+    const done = shuffle(pool.filter((c) => learned[c.id]));
+    return notyet.concat(done).slice(0, 10);
+  }
+  function openFlash(pool, title, list) {
+    fl.pool = pool; fl.title = title; fl.list = list || pick10(pool); fl.i = 0; fl.back = false; fl.miss = []; fl.hit = 0;
+    if (!fl.list.length) { toast('このカードは、まだありません。'); return; }
+    $('#flash').hidden = false;
+    document.body.style.overflow = 'hidden';
+    if (!history.state || !history.state.flash) history.pushState({ flash: 1 }, '');
+    drawFlash();
+  }
+  function closeFlash(fromPop) {
+    $('#flash').hidden = true;
+    document.body.style.overflow = '';
+    if (!fromPop && history.state && history.state.flash) history.back();
+    renderCards();
+  }
+  function plain(html) { const d = document.createElement('div'); d.innerHTML = html; return d.textContent || ''; }
+  function drawFlash() {
+    const n = fl.list.length;
+    $('#flash-deck').textContent = fl.title;
+    $('#flash-bar').style.width = `${Math.round((Math.min(fl.i, n) / n) * 100)}%`;
+    if (fl.i >= n) {
+      $('#flash-count').textContent = '';
+      const missHTML = fl.miss.map((c) => `<li>${c.q}<span class="ans">${c.a}</span></li>`).join('');
+      $('#flash-stage').innerHTML = `<div class="result">
+        <p class="stamp" aria-hidden="true">できた</p>
+        <p class="result-big">${n}問のうち<b>${fl.hit}</b>問おぼえた</p>
+        <p class="result-sub">${fl.miss.length ? 'まだの問題は、もう一度くり返すと覚えやすくなります。' : '全部おぼえました。'}</p>
+        ${missHTML ? `<ul class="result-list">${missHTML}</ul>` : ''}
+      </div>`;
+      $('#flash-actions').innerHTML = fl.miss.length
+        ? `<button type="button" class="btn ok wide" data-f="again">まだの${fl.miss.length}問をもう一度</button><button type="button" class="btn btn-line" data-f="next">別の10問</button><button type="button" class="btn btn-line" data-f="close">おわる</button>`
+        : `<button type="button" class="btn ok" data-f="next">別の10問</button><button type="button" class="btn btn-line" data-f="close">おわる</button>`;
+      return;
+    }
+    const c = fl.list[fl.i];
+    $('#flash-count').textContent = `${fl.i + 1} / ${n}`;
+    if (!fl.back) {
+      const long = plain(c.q).length > 26 || c.c;
+      $('#flash-stage').innerHTML = `<div class="card" data-f="flip" role="button" tabindex="0" aria-label="めくる">
+        ${c.lead ? `<p class="card-lead">${c.lead}</p>` : ''}
+        <p class="card-q${long ? ' long' : ''}">${c.q}</p>
+        ${c.c ? `<ul class="card-c">${c.c.map((x) => `<li>${x}</li>`).join('')}</ul>` : ''}
+        <p class="card-tap">答えを思い出してから、めくります</p>
+      </div>`;
+      $('#flash-actions').innerHTML = '<button type="button" class="btn btn-ink wide" data-f="flip">答えを見る</button>';
+    } else {
+      // 記号だけの答え（ア〜エ）は、選んだ文もいっしょに見せる
+      let ans = c.a;
+      if (c.c && /^[ア-ン]$/.test(plain(c.a).trim())) {
+        const hit = c.c.find((x) => plain(x).trim().startsWith(plain(c.a).trim()));
+        if (hit) ans = hit;
       }
-      if (act === 'group-merge') {
-        const s0 = items[0];
-        const name = fileSafe(`${gradeLabel(s0.grade)}${SUBJ[s0.subject].name}_${s0.bunya ? s0.bunya + '_' : ''}${s0.unit}_${MODES[ui.mode].suffix}_${items.length}枚`) + '.pdf';
-        mergeSave(items, name);
-      }
+      $('#flash-stage').innerHTML = `<div class="card back">
+        <p class="card-qmini">${c.q}</p>
+        <p class="card-a-label">答え</p>
+        <p class="card-a${plain(ans).length > 14 ? ' long' : ''}">${ans}</p>
+        ${c.s ? `<div class="card-s">${c.s.map((x) => `<p>${x}</p>`).join('')}</div>` : ''}
+      </div>`;
+      $('#flash-actions').innerHTML = '<button type="button" class="btn btn-line" data-f="miss">まだ</button><button type="button" class="btn ok" data-f="hit">おぼえた</button>';
+    }
+  }
+  function flashAct(act) {
+    const c = fl.list[fl.i];
+    if (act === 'flip') { fl.back = true; drawFlash(); return; }
+    if (act === 'hit' || act === 'miss') {
+      if (act === 'hit') { fl.hit += 1; learned[c.id] = 1; } else { fl.miss.push(c); delete learned[c.id]; }
+      store.set('efica-learned', learned);
+      fl.i += 1; fl.back = false; drawFlash(); return;
+    }
+    if (act === 'again') { openFlash(fl.pool, fl.title, shuffle(fl.miss.slice())); return; }
+    if (act === 'next') { openFlash(fl.pool, fl.title); return; }
+    if (act === 'close') closeFlash(false);
+  }
+
+  function bindCards() {
+    $('.subjects[data-for="cards"]').addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      ui.csubject = b.dataset.v; saveUI(); renderCards();
     });
-    $('#select-visible').addEventListener('click', () => {
-      visible().forEach((s) => selected.add(s.id));
-      renderList(); renderSelbar();
+    $('#decks').addEventListener('click', async (e) => {
+      const b = e.target.closest('.deck'); if (!b) return;
+      const u = unitsOf(ui.csubject, ui.grade).find((x) => x.key === b.dataset.key);
+      const box = await loadCards(ui.csubject, ui.grade);
+      openFlash(cardsOfUnit(box, u), u.unit);
     });
-    $('#sel-clear').addEventListener('click', () => { selected.clear(); renderList(); renderSelbar(); });
-    $('#sel-merge').addEventListener('click', () => {
-      const items = CAT.sheets.filter((s) => selected.has(s.id));
-      const same = items.every((s) => s.subject === items[0].subject && s.grade === items[0].grade);
-      const head = same ? `${gradeLabel(items[0].grade)}${SUBJ[items[0].subject].name}_` : '';
-      mergeSave(items, fileSafe(`${head}えらんだ${items.length}枚_${MODES[ui.mode].suffix}`) + '.pdf');
+    $('#quick').addEventListener('click', async () => {
+      const box = await loadCards(ui.csubject, ui.grade);
+      const pool = unitsOf(ui.csubject, ui.grade).flatMap((u) => cardsOfUnit(box, u));
+      openFlash(pool, `中${ui.grade}・${SUBJ[ui.csubject].name}`);
     });
-    $('#sel-plan').addEventListener('click', () => {
-      const ids = CAT.sheets.filter((s) => selected.has(s.id)).map((s) => s.id);
-      const before = plan.sheets.length;
-      ids.forEach((id) => { if (!plan.sheets.includes(id)) plan.sheets.push(id); });
-      const added = plan.sheets.length - before;
-      selected.clear(); renderList(); renderSelbar();
-      savePlan(); renderPlan();
-      $('#picked').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      toast(added ? `${added}枚を自習計画に入れました。` : 'もう計画に入っています。');
+    $('#flash').addEventListener('click', (e) => {
+      if (e.target.closest('#flash-x')) { closeFlash(false); return; }
+      const b = e.target.closest('[data-f]'); if (b) flashAct(b.dataset.f);
     });
-    $('#viewer-close').addEventListener('click', () => $('#viewer').close());
-    $('#viewer').addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
+    // 左右にすべらせても答えられる（右＝おぼえた、左＝まだ）
+    let sx = null;
+    $('#flash-stage').addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
+    $('#flash-stage').addEventListener('touchend', (e) => {
+      if (sx === null || !fl.back) { sx = null; return; }
+      const dx = e.changedTouches[0].clientX - sx; sx = null;
+      if (Math.abs(dx) > 70) flashAct(dx > 0 ? 'hit' : 'miss');
+    });
+    document.addEventListener('keydown', (e) => {
+      if ($('#flash').hidden) return;
+      if (e.key === 'Escape') closeFlash(false);
+      else if ((e.key === ' ' || e.key === 'Enter') && !fl.back && fl.i < fl.list.length) { e.preventDefault(); flashAct('flip'); }
+      else if (e.key === 'ArrowRight' && fl.back) flashAct('hit');
+      else if (e.key === 'ArrowLeft' && fl.back) flashAct('miss');
+    });
+    window.addEventListener('popstate', () => { if (!$('#flash').hidden) closeFlash(true); });
   }
 
   /* ════════════════ 2. 自習計画 ════════════════ */
@@ -463,6 +514,7 @@
   }
 
   function renderPlan() {
+    plan.grade = String(ui.grade);
     const f = $('#plan-form');
     // 入力欄に今の計画を写す（打っている欄は上書きしない）
     for (const k of ['name', 'grade', 'goal', 'start', 'end', 'minutes', 'time', 'perDay']) {
@@ -476,7 +528,7 @@
     const sheets = plan.sheets.map((id) => BY_ID.get(id)).filter(Boolean);
     $('#picked').innerHTML = sheets.length
       ? sheets.map((s) => `<li data-id="${s.id}"><span>${esc(sheetName(s))}<span class="sub">中${s.grade}・${SUBJ[s.subject].name}　${esc(s.unit)}</span></span><button type="button" class="x" aria-label="${esc(sheetName(s))}を計画から外す">${IC_X}</button></li>`).join('')
-      : '<li class="picked-empty">まだプリントを選んでいません。「プリントを選ぶ」から、一覧で選んで「自習計画に入れる」を押してください。</li>';
+      : '<li class="picked-empty">上で章を選んで「入れる」を押すと、その章のプリントが入ります。</li>';
     $('#tasks').innerHTML = plan.tasks.map((t, i) =>
       `<li><span>${esc(t)}</span><button type="button" class="x" data-i="${i}" aria-label="${esc(t)}を外す">${IC_X}</button></li>`).join('');
 
@@ -818,12 +870,6 @@
       const id = b.closest('li').dataset.id;
       plan.sheets = plan.sheets.filter((x) => x !== id); savePlan(); renderPlan();
     });
-    $('#go-pick').addEventListener('click', () => {
-      ui.grade = Number(plan.grade) || ui.grade;
-      renderAll();
-      $('#prints').scrollIntoView({ behavior: 'smooth' });
-      toast('選んだら、画面の下の「自習計画に入れる」を押してください。', 4200);
-    });
     $('#plan-reset').addEventListener('click', () => {
       if (!window.confirm('入れた内容を消して、新しい計画にします。よろしいですか。')) return;
       plan = freshPlan(); store.del(PLAN_KEY); renderPlan();
@@ -898,6 +944,54 @@
     else window.addEventListener('resize', fitPreview);
   }
 
+  /* ════════════════ 学年とタブ ════════════════ */
+
+  function setGrade(g) {
+    ui.grade = g; saveUI(); store.set('efica-grade-set', 1);
+    $('#grade-label').textContent = `中${g}`;
+    $$('#grade-choices button').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.g) === g)));
+    renderPrints(); renderCards(); renderPickUnits(); renderPlan();
+  }
+  function bindGrade() {
+    $('#grade-btn').addEventListener('click', () => $('#grade-dlg').showModal());
+    $('#grade-choices').addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      setGrade(Number(b.dataset.g)); $('#grade-dlg').close();
+    });
+    $('#grade-dlg').addEventListener('click', (e) => { if (e.target === e.currentTarget && store.get('efica-grade-set')) e.currentTarget.close(); });
+    $('#grade-dlg').addEventListener('cancel', (e) => { if (!store.get('efica-grade-set')) e.preventDefault(); });
+  }
+
+  const TABS = ['prints', 'cards', 'plan'];
+  function route() {
+    const t = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'prints';
+    TABS.forEach((x) => { $(`#view-${x}`).hidden = x !== t; });
+    $$('.tab-link').forEach((a) => { if (a.dataset.tab === t) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    if (t === 'plan') fitPreview();
+    window.scrollTo(0, 0);
+  }
+
+  /* 計画表に、プリントの章をまるごと入れる */
+  function renderPickUnits() {
+    $('#pick-unit').innerHTML = '<option value="">プリントの章を選ぶ</option>' + CAT.subjects.map((sub) => {
+      const us = unitsOf(sub.key, ui.grade);
+      if (!us.length) return '';
+      return `<optgroup label="${sub.name}">${us.map((u) => `<option value="${esc(u.key)}">${esc(u.unit)}（${u.items.length}枚）</option>`).join('')}</optgroup>`;
+    }).join('');
+  }
+  function bindPick() {
+    $('#pick-add').addEventListener('click', () => {
+      const key = $('#pick-unit').value;
+      if (!key) { toast('章を選んでから押してください。'); return; }
+      const u = unitsOf(key.split('|')[0], ui.grade).find((x) => x.key === key);
+      if (!u) return;
+      const before = plan.sheets.length;
+      u.items.forEach((s) => { if (!plan.sheets.includes(s.id)) plan.sheets.push(s.id); });
+      savePlan(); renderPlan();
+      toast(plan.sheets.length > before ? `${plan.sheets.length - before}枚を入れました。` : 'もう入っています。');
+    });
+  }
+
   /* ── はじまり ── */
   async function init() {
     if (/\bLine\//i.test(navigator.userAgent)) {
@@ -907,21 +1001,34 @@
     try {
       const r = await fetch('data/catalog.json', { cache: 'no-cache' });
       CAT = await r.json();
-    } catch (e) {
-      $('#list').innerHTML = '<div class="empty"><b>一覧を読みこめませんでした。</b>通信のよい所で、ページを開き直してください。</div>';
+    } catch {
+      $('#units').innerHTML = '<p class="empty">一覧を読みこめませんでした。電波のよい所で、開き直してください。</p>';
       return;
     }
+    try {   // 線のアイコン（Tabler Icons）を読みこんでおく
+      const sv = await fetch('assets/icons.svg').then((r) => r.text());
+      document.body.insertAdjacentHTML('afterbegin', sv);
+    } catch { /* アイコンがなくても動く */ }
     CAT.subjects.forEach((s) => { SUBJ[s.key] = s; });
     CAT.sheets.forEach((s) => BY_ID.set(s.id, s));
+    const qp = new URLSearchParams(location.search);
+    if (['1', '2', '3'].includes(qp.get('g'))) { ui.grade = Number(qp.get('g')); store.set('efica-grade-set', 1); }
+    if (SUBJ[qp.get('s')]) { ui.subject = qp.get('s'); ui.csubject = qp.get('s'); }
+    saveUI();
     if (!SUBJ[ui.subject]) ui.subject = 'math';
+    if (!SUBJ[ui.csubject]) ui.csubject = 'math';
     if (![1, 2, 3].includes(ui.grade)) ui.grade = 1;
-    if (!MODES[ui.mode]) ui.mode = 'q';
     plan.sheets = plan.sheets.filter((id) => BY_ID.has(id));
-    renderStats();
-    renderAll();
-    bindPrints();
-    bindPlan();
-    renderPlan();
+    const d = new Date(CAT.built + 'T00:00:00');
+    $('#built').textContent = `　${d.getMonth() + 1}月${d.getDate()}日更新`;
+    $('#grade-label').textContent = `中${ui.grade}`;
+    const gradeSet = !!store.get('efica-grade-set');
+    $$('#grade-choices button').forEach((b) => b.setAttribute('aria-pressed', String(gradeSet && Number(b.dataset.g) === ui.grade)));
+    bindGrade(); bindPrints(); bindCards(); bindPlan(); bindPick();
+    renderPrints(); renderPickUnits(); renderPlan(); renderCards();
+    window.addEventListener('hashchange', route);
+    route();
+    if (!store.get('efica-grade-set')) $('#grade-dlg').showModal();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
