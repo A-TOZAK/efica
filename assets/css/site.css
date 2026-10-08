@@ -456,7 +456,7 @@ dialog::backdrop { background: rgba(23, 25, 30, .55); }
 .picked .x, .tasks .x { width: 40px; height: 40px; border: 0; background: none; display: grid; place-items: center; color: var(--sub); }
 .picked .x:hover, .tasks .x:hover { color: var(--ink); }
 .picked .x svg, .tasks .x svg { width: 18px; height: 18px; }
-.picked-empty { padding: 14px 0; border-bottom: 1px solid var(--line); color: var(--sub); font-size: 14px; }
+.picked-empty, .picked li.picked-empty { display: block; padding: 14px 0; border-bottom: 1px solid var(--line); color: var(--sub); font-size: 14px; }
 .picked-empty::before { content: none !important; }
 .picked-tools { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
 .check-line { position: relative; display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; font-size: 14px; line-height: 1.6; cursor: pointer; }
