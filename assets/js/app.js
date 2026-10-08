@@ -128,15 +128,23 @@
   function rowHTML(s) {
     const m = MODES[ui.mode];
     const pages = m.pages(s);
-    const meta = [s.section, `問題${s.qPages}ページ`, s.aPages ? `答え${s.aPages}ページ` : '答えなし'].filter(Boolean);
+    const sub = SUBJ[s.subject];
+    const tags = [sub.name, `中${s.grade}`, s.section].filter(Boolean);
+    const meta = [`問題${s.qPages}ページ`, s.aPages ? `答え${s.aPages}ページ` : '答えなし'];
     const on = selected.has(s.id);
     const btn = pages
       ? `<a class="dl" href="${m.file(s)}" download="${esc(dlName(s, ui.mode))}" aria-label="${esc(sheetName(s))}を${m.label}でダウンロード">${IC_DL}${m.label}<span class="dl-size">${mb(m.size(s))}</span></a>`
       : `<span class="dl is-none">${m.label}はありません</span>`;
-    return `<li class="row${on ? ' is-on' : ''}" data-id="${s.id}">
-      <label class="check"><input type="checkbox" ${on ? 'checked' : ''} aria-label="${esc(sheetName(s))}をえらぶ"><span class="box" aria-hidden="true"></span></label>
-      <button type="button" class="thumb" data-act="view" aria-label="${esc(sheetName(s))}の中を見る"><img src="${s.thumb}" alt="" loading="lazy" width="58" height="82"></button>
-      <div class="row-body"><p class="row-title">${esc(s.title)}${s.no ? `<span class="no">${esc(s.no)}</span>` : ''}</p><p class="row-meta">${meta.map((x) => `<span>${esc(x)}</span>`).join('')}</p></div>
+    return `<li class="row card${on ? ' is-on' : ''}" data-id="${s.id}">
+      <div class="card-art">
+        <button type="button" class="thumb" data-act="view" aria-label="${esc(sheetName(s))}の中を見る"><img src="${s.thumb}" alt="" loading="lazy" width="480" height="679"></button>
+      </div>
+      <div class="row-body">
+        <div class="row-head"><label class="check"><input type="checkbox" ${on ? 'checked' : ''} aria-label="${esc(sheetName(s))}をえらぶ"><span class="box" aria-hidden="true"></span></label>
+        <p class="row-title">${esc(s.title)}${s.no ? `<span class="no">${esc(s.no)}</span>` : ''}</p></div>
+        <p class="row-tags">${tags.map((x, i) => `<span class="${i === 0 ? `t-${s.subject}` : ''}">${esc(x)}</span>`).join('')}</p>
+        <p class="row-meta">${meta.map((x) => `<span>${esc(x)}</span>`).join('')}</p>
+      </div>
       ${btn}
     </li>`;
   }

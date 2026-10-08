@@ -287,14 +287,18 @@ h1, h2, h3, .ph { word-break: auto-phrase; text-wrap: pretty; font-feature-setti
 .group-title .n { font-family: var(--font-en); font-weight: 600; font-size: 16px; color: var(--sub); margin-left: 10px; letter-spacing: .04em; }
 .group-actions { display: flex; align-items: center; gap: 18px; }
 
+/* プリントはカードで並べる（School Stock の素材の棚と同じ並べ方） */
+.group ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: 24px 20px; padding-top: 6px; }
 .row {
-  display: grid; align-items: center; column-gap: 16px;
-  grid-template-columns: 28px 58px minmax(0, 1fr) auto;
-  padding: 12px 8px 12px 4px; border-top: 1px solid var(--line);
-  transition: background .12s;
+  display: flex; flex-direction: column; gap: 10px;
+  border: 1px solid var(--line); background: #fff; padding: 0 0 14px;
+  transition: border-color .12s, box-shadow .12s;
 }
-.row:hover { background: var(--wash); }
-.row.is-on { background: var(--accent-wash); }
+.row:hover { border-color: var(--line-2); box-shadow: 0 2px 10px rgba(23,25,30,.07); }
+.row.is-on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); background: var(--accent-wash); }
+.card-art { position: relative; }
+.row-head { display: flex; align-items: flex-start; gap: 6px; }
+.row-head .check { height: 26px; margin-left: -4px; flex: none; }
 .check { position: relative; display: inline-grid; place-items: center; width: 28px; height: 44px; cursor: pointer; }
 .check input, .check-line input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .box { width: 22px; height: 22px; border: 1.5px solid var(--ink); border-radius: 2px; background: #fff; display: inline-grid; place-items: center; flex: none; }
@@ -303,15 +307,19 @@ input:checked + .box { background: var(--ink); }
 input:checked + .box::after { opacity: 1; }
 input:focus-visible + .box { outline: 2.5px solid var(--accent); outline-offset: 2px; }
 .thumb {
-  padding: 0; border: 1px solid var(--line-2); background: #fff; width: 58px; aspect-ratio: 210 / 297; overflow: hidden; border-radius: 1px;
-  position: relative;
+  display: block; padding: 14px 14px 0; border: 0; border-bottom: 1px solid var(--line); background: var(--wash); width: 100%; aspect-ratio: 1 / 1; overflow: hidden;
+  position: relative; cursor: zoom-in;
 }
-.thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
-.thumb::after { content: "見る"; position: absolute; inset: auto 0 0 0; font-size: 11px; font-weight: 700; color: #fff; background: rgba(23,25,30,.78); line-height: 1.7; opacity: 0; transition: opacity .12s; }
+.thumb img { display: block; width: 100%; height: auto; background: #fff; box-shadow: 0 1px 4px rgba(23,25,30,.14); }
+.thumb::after { content: "中を見る"; position: absolute; inset: auto 0 0 0; font-size: 13px; font-weight: 700; color: #fff; background: rgba(23,25,30,.78); line-height: 1.7; opacity: 0; transition: opacity .12s; }
 .thumb:hover::after, .thumb:focus-visible::after { opacity: 1; }
+.row-body { padding: 4px 14px 0; flex: 1; }
 .row-title { font-size: 16px; font-weight: 700; line-height: 1.55; word-break: auto-phrase; }
+.row-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.row-tags span { font-size: 12px; line-height: 1.7; padding: 0 7px; border: 1px solid var(--line-2); color: var(--ink-2); white-space: nowrap; }
+.row-tags span:first-child { background: var(--ink); border-color: var(--ink); color: #fff; font-weight: 700; }
 .row-title .no { margin-left: 4px; }
-.row-meta { margin-top: 2px; font-size: 13px; color: var(--sub); line-height: 1.6; }
+.row-meta { margin-top: 6px; font-size: 12px; color: var(--sub); line-height: 1.6; }
 .row-meta span { white-space: nowrap; }
 .row-meta span + span::before { content: "・"; }
 .dl {
@@ -324,6 +332,7 @@ input:focus-visible + .box { outline: 2.5px solid var(--accent); outline-offset:
 .dl-size { font-family: var(--font-en); font-weight: 500; font-size: 14px; letter-spacing: .04em; color: var(--sub); }
 .dl:hover .dl-size { color: rgba(255,255,255,.75); }
 .dl.is-none { border-color: var(--line-2); color: #a9a8a3; pointer-events: none; }
+.row .dl { margin: 0 14px; min-width: 0; }
 .empty { margin-top: 28px; border-top: 2px solid var(--ink); padding: 36px 0; color: var(--ink-2); }
 .empty b { display: block; font-size: 18px; color: var(--ink); margin-bottom: 4px; }
 @media (max-width: 760px) {
@@ -331,9 +340,16 @@ input:focus-visible + .box { outline: 2.5px solid var(--accent); outline-offset:
   .group-head { padding: 12px 0 10px; }
   .group-title { font-size: 17px; }
   .group-actions { width: 100%; justify-content: space-between; }
-  .row { grid-template-columns: 28px 50px minmax(0, 1fr); row-gap: 10px; padding: 12px 0; }
-  .thumb { width: 50px; }
-  .row .dl { grid-column: 1 / -1; width: 100%; }
+  .group ol { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; }
+  .row { padding-bottom: 10px; gap: 8px; }
+  .row-body { padding: 0 10px; }
+  .row-title { font-size: 15px; }
+  .row .dl { margin: 0 10px; width: auto; min-width: 0; font-size: 14px; gap: 6px; padding: 0 8px; }
+  .row .dl-size, .row-meta { display: none; }
+  .thumb { padding: 10px 10px 0; }
+  .row-head { gap: 2px; }
+  .row-head .check { width: 26px; }
+  .row-head .box { width: 20px; height: 20px; }
 }
 
 /* ── 選んだ帯 ───────────────────────── */
