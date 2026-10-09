@@ -105,6 +105,11 @@
     $('.seg[data-key="mode"]').innerHTML = Object.entries(MODES).map(([k, m]) =>
       `<button type="button" data-v="${k}" aria-pressed="${ui.mode === k}">${m.label}</button>`).join('');
     $('#mode-help').textContent = MODES[ui.mode].help;
+    // 一覧を見ている間も、上の帯に学年と教科を出しておく
+    $('.pick[data-key="grade"]').innerHTML = [1, 2, 3].map((g) =>
+      `<button type="button" data-v="${g}" aria-pressed="${ui.grade === g && !query}">中${g}</button>`).join('');
+    $('.pick[data-key="subject"]').innerHTML = CAT.subjects.map((sub) =>
+      `<button type="button" data-v="${sub.key}" aria-pressed="${ui.subject === sub.key && !query}">${sub.name}</button>`).join('');
   }
 
   function visible() {
@@ -251,6 +256,26 @@
   }
 
   function bindPrints() {
+    $('#pickbar').addEventListener('click', (e) => {
+      const b = e.target.closest('.pick button');
+      if (!b) return;
+      const key = b.parentElement.dataset.key;
+      if (key === 'grade') ui.grade = Number(b.dataset.v);
+      if (key === 'subject') ui.subject = b.dataset.v;
+      if (query) { query = ''; $('#q').value = ''; $('#q-clear').hidden = true; }
+      renderAll();
+      // 選び直したら、一覧の頭から見せる
+      const top = $('#results-title').getBoundingClientRect().top + scrollY - $('.site-header').offsetHeight - $('#pickbar').offsetHeight - 16;
+      if (scrollY > top) window.scrollTo({ top, behavior: 'instant' });
+    });
+    // 上の学年と教科のボタンが見えなくなり、一覧が画面にある間だけ帯を出す
+    if ('IntersectionObserver' in window) {
+      let filtersOut = false; let listIn = false;
+      const sync = () => { $('#pickbar').hidden = !(filtersOut && listIn); };
+      new IntersectionObserver(([en]) => { filtersOut = !en.isIntersecting && en.boundingClientRect.top < 0; sync(); },
+        { rootMargin: '-80px 0px 0px 0px' }).observe($('.seg-subject'));
+      new IntersectionObserver(([en]) => { listIn = en.isIntersecting; sync(); }).observe($('#list'));
+    }
     $('#filters').addEventListener('click', (e) => {
       const b = e.target.closest('.seg button');
       if (!b) return;
