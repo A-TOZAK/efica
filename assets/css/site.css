@@ -644,3 +644,36 @@ body:not(.has-selbar) .toast { bottom: 28px; }
   .pg { width: 210mm; height: 296.5mm; page-break-after: always; break-after: page; }
   .pg:last-child { page-break-after: auto; break-after: auto; }
 }
+
+/* ── 02 英単語カード（2026-10-21） ──
+ * 使い方は3つの手順を線の図で。図は墨と藍の2色だけ（帯＝藍）。カードの並べ方はプリントの一覧と同じ */
+.wsteps { margin-top: 44px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--line); }
+.wsteps li { display: grid; grid-template-columns: 96px minmax(0, 1fr); grid-template-rows: auto 1fr; column-gap: 16px; padding: 22px 24px 22px 0; }
+.wsteps li + li { border-left: 1px solid var(--line); padding-left: 24px; }
+.wsteps-fig { grid-row: 1 / span 2; width: 96px; height: auto; stroke: var(--ink); stroke-width: 1.6; }
+.wsteps-fig .acc { stroke: var(--accent); }
+.wsteps-fig rect.acc { fill: var(--accent-wash); }
+.wsteps-fig .dash { stroke: var(--sub); stroke-dasharray: 3 3; stroke-width: 1.2; }
+.wsteps-fig .thin { stroke: var(--line-2); stroke-width: 1.2; }
+.wsteps-no { font-family: var(--font-en); font-weight: 600; font-size: 26px; line-height: 1; color: var(--accent); }
+.wsteps-t { margin-top: 6px; font-size: 15px; font-weight: 700; line-height: 1.6; word-break: auto-phrase; text-wrap: pretty; }
+.wfilters { margin-top: 36px; }
+.wgroup { margin-top: 32px; }
+.wcard .row-body { padding-top: 2px; }
+.wcard-no { font-family: var(--font-en); font-weight: 600; font-size: 34px; line-height: 1; letter-spacing: .01em; color: var(--ink); }
+.wcard-no span { font-size: 16px; letter-spacing: .06em; color: var(--sub); margin-right: 3px; }
+.wcard-range { margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--accent); line-height: 1.5; }
+.wcard-words { margin-top: 4px; font-size: 14px; color: var(--ink-2); line-height: 1.55; overflow-wrap: anywhere; }
+.wnote { margin-top: 28px; font-size: 14px; color: var(--ink-2); }
+.wnote b { color: var(--ink); }
+@media (max-width: 900px) {
+  .wsteps { grid-template-columns: minmax(0, 1fr); }
+  .wsteps li, .wsteps li + li { padding: 16px 0; border-left: 0; }
+  .wsteps li + li { border-top: 1px solid var(--line); }
+  .wsteps li { grid-template-columns: 76px minmax(0, 1fr); }
+  .wsteps-fig { width: 76px; }
+}
+@media (max-width: 760px) {
+  .wcard-no { font-size: 28px; }
+  .wcard-words { font-size: 13px; }
+}

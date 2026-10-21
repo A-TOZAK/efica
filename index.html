@@ -41,8 +41,9 @@
     </a>
     <nav class="gnav" aria-label="ページ内の案内">
       <a href="#prints"><span class="gnav-no">01</span>プリント</a>
-      <a href="#plan"><span class="gnav-no">02</span>自習計画</a>
-      <a href="#howto"><span class="gnav-no">03</span>使い方</a>
+      <a href="#words"><span class="gnav-no">02</span>単語カード</a>
+      <a href="#plan"><span class="gnav-no">03</span>自習計画</a>
+      <a href="#howto"><span class="gnav-no">04</span>使い方</a>
     </nav>
   </div>
 </header>
@@ -57,7 +58,7 @@
       <div class="hero-text">
         <p class="eyebrow">PRINTS &amp; STUDY PLAN<span class="eyebrow-sep"></span>JUNIOR HIGH</p>
         <h1 id="hero-title">中学生の<br>自習プリント</h1>
-        <p class="hero-lead">数学・国語・理科・社会・英語のプリントを、問題だけ、答えつき、答えだけの3つの形から選んでダウンロードできます。自分の自習計画も、このページで作れます。</p>
+        <p class="hero-lead">数学・国語・理科・社会・英語のプリントを、問題だけ、答えつき、答えだけの3つの形から選んでダウンロードできます。英単語カードもあります。自分の自習計画も、このページで作れます。</p>
         <div class="hero-cta">
           <a class="btn btn-ink btn-lg" href="#prints">プリントをさがす</a>
           <a class="btn btn-line btn-lg" href="#plan">自習計画をつくる</a>
@@ -118,13 +119,69 @@
     </div>
   </section>
 
-  <!-- 02 自習計画 -->
+  <!-- 02 英単語カード -->
+  <section class="sec sec-words" id="words" aria-labelledby="words-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="sec-no"><span class="sec-num">02</span><span class="sec-en">WORD CARDS</span></p>
+        <h2 id="words-title">英単語カード</h2>
+        <p class="sec-lead">教科書に出てくる英単語を、1枚に20語ずつまとめました。表で英語の意味を書き、うらで意味から英語を書きます。答えは紙の端に印刷してあるので、自分で丸つけができます。</p>
+      </div>
+
+      <ol class="wsteps" aria-label="単語カードの使い方">
+        <li>
+          <svg class="wsteps-fig" viewBox="0 0 120 84" aria-hidden="true">
+            <rect x="22" y="8" width="58" height="68" rx="1.5"/>
+            <path class="acc" d="M80 8h18v68H80"/>
+            <path class="dash" d="M80 6v72"/>
+            <path class="acc" d="M104 30c8 6 8 18 0 24"/>
+            <path class="acc" d="m100 50 4 5 5-4"/>
+          </svg>
+          <p class="wsteps-no">1</p>
+          <p class="wsteps-t">こたえの帯を、点線でうしろに折ってかくす</p>
+        </li>
+        <li>
+          <svg class="wsteps-fig" viewBox="0 0 120 84" aria-hidden="true">
+            <rect x="22" y="8" width="70" height="68" rx="1.5"/>
+            <path d="M30 22h18M30 36h18M30 50h18M30 64h18" />
+            <path class="thin" d="M56 22h28M56 36h28M56 50h28M56 64h28"/>
+            <path class="acc" d="m86 30 14-14 4 4-14 14-6 2z"/>
+          </svg>
+          <p class="wsteps-no">2</p>
+          <p class="wsteps-t">表は英語を見て意味を書く。うらは意味を見て英語を書く</p>
+        </li>
+        <li>
+          <svg class="wsteps-fig" viewBox="0 0 120 84" aria-hidden="true">
+            <rect x="22" y="8" width="58" height="68" rx="1.5"/>
+            <path class="dash" d="M80 6v72"/>
+            <rect class="acc" x="80" y="8" width="18" height="68" rx="1"/>
+            <circle class="acc" cx="50" cy="28" r="9"/>
+            <path class="acc" d="M41 52l7 7 12-14"/>
+          </svg>
+          <p class="wsteps-no">3</p>
+          <p class="wsteps-t">帯を開いて丸をつけ、まちがえた語を赤で書き直す</p>
+        </li>
+      </ol>
+
+      <div class="filters wfilters">
+        <div class="filter">
+          <p class="filter-label" id="lb-wgrade">学年</p>
+          <div class="seg" role="group" aria-labelledby="lb-wgrade" id="wgrade"></div>
+        </div>
+      </div>
+
+      <div class="group wgroup" id="wgroup" aria-live="polite"></div>
+      <p class="wnote">印刷は、A4・両面・<b>長辺とじ</b>にしてください。表とうらの帯が、紙の同じ場所に重なります。</p>
+    </div>
+  </section>
+
+  <!-- 03 自習計画 -->
   <section class="sec sec-plan" id="plan" aria-labelledby="plan-title">
     <div class="wrap">
       <div class="sec-head sec-head-plan">
         <img class="sec-art sec-art-plan" src="assets/img/plan-900.webp" width="900" height="900" alt="" loading="lazy">
         <div>
-          <p class="sec-no"><span class="sec-num">02</span><span class="sec-en">STUDY PLAN</span></p>
+          <p class="sec-no"><span class="sec-num">03</span><span class="sec-en">STUDY PLAN</span></p>
           <h2 id="plan-title">自習計画をつくる</h2>
           <p class="sec-lead">名前・目標・期間・時間・内容を入れると、計画表がその場でできあがります。できた計画表は、PDFや画像にして保存したり、LINEで送ったりできます。</p>
           <p class="privacy"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="1.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>入れた名前や計画は、このブラウザの中にだけ保存されます。インターネットには送られません。</p>
@@ -243,11 +300,11 @@
     </div>
   </section>
 
-  <!-- 03 使い方 -->
+  <!-- 04 使い方 -->
   <section class="sec sec-how" id="howto" aria-labelledby="how-title">
     <div class="wrap">
       <div class="sec-head">
-        <p class="sec-no"><span class="sec-num">03</span><span class="sec-en">HOW TO</span></p>
+        <p class="sec-no"><span class="sec-num">04</span><span class="sec-en">HOW TO</span></p>
         <h2 id="how-title">使い方</h2>
       </div>
       <ol class="how">

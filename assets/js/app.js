@@ -274,7 +274,8 @@
       const sync = () => { $('#pickbar').hidden = !(filtersOut && listIn); };
       new IntersectionObserver(([en]) => { filtersOut = !en.isIntersecting && en.boundingClientRect.top < 0; sync(); },
         { rootMargin: '-80px 0px 0px 0px' }).observe($('.seg-subject'));
-      new IntersectionObserver(([en]) => { listIn = en.isIntersecting; sync(); }).observe($('#list'));
+      // 一覧が画面の上半分にあるときだけ出す（下の「単語カード」の見出しにかぶらないように）
+      new IntersectionObserver(([en]) => { listIn = en.isIntersecting; sync(); }, { rootMargin: '-140px 0px -55% 0px' }).observe($('#list'));
     }
     $('#filters').addEventListener('click', (e) => {
       const b = e.target.closest('.seg button');
@@ -931,6 +932,78 @@
     else window.addEventListener('resize', fitPreview);
   }
 
+  /* ── 英単語カード（data/words.json） ── */
+  let WORDS = null;
+  let wgrade = store.get('efica-wgrade', 1);
+
+  function wcardHTML(c) {
+    const head = c.words.slice(0, 4).join(' · ');
+    return `<li class="row card wcard" data-wid="${c.id}">
+      <div class="card-art">
+        <button type="button" class="thumb" data-act="wview" aria-label="英単語カード No.${c.no}の中を見る"><img src="${c.thumb}" alt="" loading="lazy" width="480" height="679"></button>
+      </div>
+      <div class="row-body">
+        <p class="wcard-no"><span>No.</span>${String(c.no).padStart(2, '0')}</p>
+        <p class="wcard-range">${esc(c.range)}</p>
+        <p class="wcard-words en">${esc(head)}${c.words.length > 4 ? ' …' : ''}</p>
+        <p class="row-meta"><span>${c.n}語</span><span>表とうらの2ページ</span></p>
+      </div>
+      <a class="dl" href="${c.file}" download="${esc(fileSafe(`中${wgrade}英単語カード_No${String(c.no).padStart(2, '0')}`))}.pdf" aria-label="英単語カード No.${c.no}をダウンロード">${IC_DL}PDF<span class="dl-size">${mb(c.size)}</span></a>
+    </li>`;
+  }
+
+  function renderWords() {
+    if (!WORDS) return;
+    const gs = WORDS.grades;
+    if (!gs.some((g) => g.grade === wgrade)) wgrade = gs[0].grade;
+    $('#wgrade').innerHTML = [1, 2, 3].map((n) => {
+      const g = gs.find((x) => x.grade === n);
+      return `<button type="button" data-g="${n}" aria-pressed="${n === wgrade}" ${g ? '' : 'disabled'}>中${n}<span class="count">${g ? g.cards.length : 0}</span></button>`;
+    }).join('');
+    const g = gs.find((x) => x.grade === wgrade);
+    $('#wgroup').innerHTML = `<div class="group-head">
+        <p class="group-title">中学${g.grade}年の英単語<span class="n">${g.cards.length}枚・${g.total}語</span></p>
+        ${g.all ? `<div class="group-actions"><a class="btn btn-sm btn-ink" href="${g.all}" download="${esc(`中${g.grade}英単語カード_全${g.cards.length}枚`)}.pdf">${IC_DL}全${g.cards.length}枚をまとめて保存<span class="dl-size">${mb(g.allSize)}</span></a></div>` : ''}
+      </div>
+      <ol>${g.cards.map(wcardHTML).join('')}</ol>`;
+  }
+
+  function openWordViewer(c) {
+    $('#viewer-sub').textContent = `中学${wgrade}年・英単語カード　${c.range}`;
+    $('#viewer-title').textContent = `No.${c.no}（${c.n}語）`;
+    $('#viewer-body').innerHTML = c.previews.map((p, i) =>
+      `<img src="${p}" alt="英単語カード No.${c.no}の${i ? 'うら' : '表'}" width="1000" height="1414">`).join('');
+    $('#viewer-foot').innerHTML = `<a class="dl" href="${c.file}" download="${esc(fileSafe(`中${wgrade}英単語カード_No${String(c.no).padStart(2, '0')}`))}.pdf">${IC_DL}PDF<span class="dl-size">${mb(c.size)}</span></a>`;
+    $('#viewer').showModal();
+    $('#viewer-body').scrollTop = 0;
+  }
+
+  async function initWords() {
+    try {
+      const r = await fetch('data/words.json', { cache: 'no-cache' });
+      WORDS = await r.json();
+    } catch (e) {
+      $('#wgroup').innerHTML = '<div class="empty"><b>単語カードを読みこめませんでした。</b>通信のよい所で、ページを開き直してください。</div>';
+      return;
+    }
+    if (!WORDS.grades.length) { $('#words').hidden = true; return; }
+    renderWords();
+    $('#wgrade').addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-g]');
+      if (!b || b.disabled) return;
+      wgrade = Number(b.dataset.g);
+      store.set('efica-wgrade', wgrade);
+      renderWords();
+    });
+    $('#wgroup').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-act="wview"]');
+      if (!b) return;
+      const id = b.closest('[data-wid]').dataset.wid;
+      const g = WORDS.grades.find((x) => x.grade === wgrade);
+      openWordViewer(g.cards.find((c) => c.id === id));
+    });
+  }
+
   /* ── はじまり ── */
   async function init() {
     if (/\bLine\//i.test(navigator.userAgent)) {
@@ -950,6 +1023,7 @@
     if (![1, 2, 3].includes(ui.grade)) ui.grade = 1;
     if (!MODES[ui.mode]) ui.mode = 'q';
     plan.sheets = plan.sheets.filter((id) => BY_ID.has(id));
+    initWords();
     renderStats();
     renderAll();
     bindPrints();
