@@ -19,9 +19,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Barlow+Condensed:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/site.css?v=be710ee7">
+<link rel="stylesheet" href="assets/css/site.css?v=db01dc4c">
 <link rel="preload" as="image" href="assets/img/hero-1600.webp" imagesrcset="assets/img/hero-960.webp 960w, assets/img/hero-1600.webp 1600w" imagesizes="100vw">
-<script src="assets/js/app.js?v=12d8bcfd" defer></script>
+<script src="assets/js/app.js?v=74d319e8" defer></script>
 </head>
 <body>
 <a class="skip" href="#prints">プリントの一覧へ進む</a>
@@ -41,9 +41,10 @@
     </a>
     <nav class="gnav" aria-label="ページ内の案内">
       <a href="#prints"><span class="gnav-no">01</span>プリント</a>
-      <a href="#words"><span class="gnav-no">02</span>単語カード</a>
-      <a href="#plan"><span class="gnav-no">03</span>自習計画</a>
-      <a href="#howto"><span class="gnav-no">04</span>使い方</a>
+      <a href="#tests"><span class="gnav-no">02</span>小テスト</a>
+      <a href="#words"><span class="gnav-no">03</span>単語カード</a>
+      <a href="#plan"><span class="gnav-no">04</span>自習計画</a>
+      <a href="#howto"><span class="gnav-no">05</span>使い方</a>
     </nav>
   </div>
 </header>
@@ -119,11 +120,35 @@
     </div>
   </section>
 
-  <!-- 02 英単語カード -->
+  <!-- 02 小テスト（章・Unit ごと。プリントの一覧には入れない） -->
+  <section class="sec sec-tests" id="tests" aria-labelledby="tests-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="sec-no"><span class="sec-num">02</span><span class="sec-en">QUIZZES</span></p>
+        <h2 id="tests-title">小テスト</h2>
+        <p class="sec-lead">章（Unit）ごとに、プリントの中身をまとめて確かめる10分のテストです。100点で数えます。答えの面には赤字で答えが入っていて、解説の面には、まちがえたときに解き直すプリントが書いてあります。</p>
+      </div>
+
+      <div class="filters tfilters">
+        <div class="filter">
+          <p class="filter-label" id="lb-tgrade">学年</p>
+          <div class="seg" role="group" aria-labelledby="lb-tgrade" id="tgrade"></div>
+        </div>
+        <div class="filter">
+          <p class="filter-label" id="lb-tsubject">教科</p>
+          <div class="seg seg-subject" role="group" aria-labelledby="lb-tsubject" id="tsubject"></div>
+        </div>
+      </div>
+
+      <div class="group tgroup" id="tgroup" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- 03 英単語カード -->
   <section class="sec sec-words" id="words" aria-labelledby="words-title">
     <div class="wrap">
       <div class="sec-head">
-        <p class="sec-no"><span class="sec-num">02</span><span class="sec-en">WORD CARDS</span></p>
+        <p class="sec-no"><span class="sec-num">03</span><span class="sec-en">WORD CARDS</span></p>
         <h2 id="words-title">英単語カード</h2>
         <p class="sec-lead">教科書に出てくる英単語を、1枚に20語ずつまとめました。表で英語の意味を書き、うらで意味から英語を書きます。答えは紙の端に印刷してあるので、自分で丸つけができます。</p>
       </div>
@@ -175,13 +200,13 @@
     </div>
   </section>
 
-  <!-- 03 自習計画 -->
+  <!-- 04 自習計画 -->
   <section class="sec sec-plan" id="plan" aria-labelledby="plan-title">
     <div class="wrap">
       <div class="sec-head sec-head-plan">
         <img class="sec-art sec-art-plan" src="assets/img/plan-900.webp" width="900" height="900" alt="" loading="lazy">
         <div>
-          <p class="sec-no"><span class="sec-num">03</span><span class="sec-en">STUDY PLAN</span></p>
+          <p class="sec-no"><span class="sec-num">04</span><span class="sec-en">STUDY PLAN</span></p>
           <h2 id="plan-title">自習計画をつくる</h2>
           <p class="sec-lead">名前・目標・期間・時間・内容を入れると、計画表がその場でできあがります。できた計画表は、PDFや画像にして保存したり、LINEで送ったりできます。</p>
           <p class="privacy"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="1.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>入れた名前や計画は、このブラウザの中にだけ保存されます。インターネットには送られません。</p>
@@ -304,7 +329,7 @@
   <section class="sec sec-how" id="howto" aria-labelledby="how-title">
     <div class="wrap">
       <div class="sec-head">
-        <p class="sec-no"><span class="sec-num">04</span><span class="sec-en">HOW TO</span></p>
+        <p class="sec-no"><span class="sec-num">05</span><span class="sec-en">HOW TO</span></p>
         <h2 id="how-title">使い方</h2>
       </div>
       <ol class="how">

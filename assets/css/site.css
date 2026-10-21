@@ -118,6 +118,12 @@ h1, h2, h3, .ph { word-break: auto-phrase; text-wrap: pretty; font-feature-setti
   .brand { flex-direction: column; align-items: flex-start; gap: 3px; }
   .brand-ja { font-size: 10px; line-height: 1; letter-spacing: .1em; }
   .brand-en { font-size: 19px; }
+  /* 案内が5つになったので（2026-10-21 小テストを足した）、字を折らずに横へ流す。使い方はページの下にあるので外す */
+  .brand { flex: none; }
+  .gnav { gap: 9px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .gnav::-webkit-scrollbar { display: none; }
+  .gnav a { flex: none; white-space: nowrap; font-size: 12.5px; }
+  .gnav a[href="#howto"] { display: none; }
 }
 
 /* ── ヒーロー ───────────────────────── */
@@ -664,6 +670,13 @@ body:not(.has-selbar) .toast { bottom: 28px; }
 .wcard-no span { font-size: 16px; letter-spacing: .06em; color: var(--sub); margin-right: 3px; }
 .wcard-range { margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--accent); line-height: 1.5; }
 .wcard-words { margin-top: 4px; font-size: 14px; color: var(--ink-2); line-height: 1.55; overflow-wrap: anywhere; }
+/* 小テスト */
+.tfilters { margin-top: 36px; }
+.tgroup { margin-top: 32px; }
+.ttopic { margin-top: 2px; font-size: 13px; font-weight: 700; color: var(--accent); line-height: 1.5; word-break: auto-phrase; }
+.tlinks { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 13px; font-weight: 700; }
+.tlinks a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
+.tlinks .dl-size { font-size: 12px; margin-left: 4px; text-decoration: none; display: inline-block; }
 .wnote { margin-top: 28px; font-size: 14px; color: var(--ink-2); }
 .wnote b { color: var(--ink); }
 @media (max-width: 900px) {

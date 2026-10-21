@@ -27,6 +27,8 @@
   };
 
   let CAT = null;
+  let PRINTS = [];   // プリント（小テストは別の欄に出すので入れない）
+  let TESTS = [];
   const SUBJ = {};
   const BY_ID = new Map();
   const ui = Object.assign({ grade: 1, subject: 'math', mode: 'q' }, store.get('efica-ui', {}));
@@ -82,13 +84,13 @@
 
   function counts(grade) {
     const c = {};
-    for (const s of CAT.sheets) if (s.grade === grade) c[s.subject] = (c[s.subject] || 0) + 1;
+    for (const s of PRINTS) if (s.grade === grade) c[s.subject] = (c[s.subject] || 0) + 1;
     return c;
   }
 
   function renderStats() {
     const c = {};
-    for (const s of CAT.sheets) c[s.subject] = (c[s.subject] || 0) + 1;
+    for (const s of PRINTS) c[s.subject] = (c[s.subject] || 0) + 1;
     const d = new Date(CAT.built + 'T00:00:00');
     $('#stats').innerHTML = CAT.subjects.map((sub) =>
       `<div><dt>${sub.name}<span class="en">${sub.en}</span></dt><dd>${c[sub.key] || 0}<small>枚</small></dd></div>`
@@ -115,9 +117,9 @@
   function visible() {
     const q = norm(query);
     if (q) {
-      return CAT.sheets.filter((s) => norm(`${SUBJ[s.subject].name}${s.bunya}${s.unit}${s.section}${s.title}${s.no}`).includes(q));
+      return PRINTS.filter((s) => norm(`${SUBJ[s.subject].name}${s.bunya}${s.unit}${s.section}${s.title}${s.no}`).includes(q));
     }
-    return CAT.sheets.filter((s) => s.grade === ui.grade && s.subject === ui.subject);
+    return PRINTS.filter((s) => s.grade === ui.grade && s.subject === ui.subject);
   }
 
   function groupOf(list) {
@@ -1004,6 +1006,60 @@
     });
   }
 
+  /* ── 小テスト（章・Unit ごと。catalog の kind が test のもの） ── */
+  const tui = Object.assign({ grade: 1, subject: 'math' }, store.get('efica-tui', {}));
+
+  function tcardHTML(s) {
+    const links = ['full', 'a'].map((k) => `<a href="${MODES[k].file(s)}" download="${esc(dlName(s, k))}">${MODES[k].label}<span class="dl-size">${mb(MODES[k].size(s))}</span></a>`).join('');
+    return `<li class="row card tcard" data-id="${s.id}">
+      <div class="card-art">
+        <button type="button" class="thumb" data-act="tview" aria-label="${esc(s.unit)}の小テストの中を見る"><img src="${s.thumb}" alt="" loading="lazy" width="480" height="679"></button>
+      </div>
+      <div class="row-body">
+        <p class="row-title">${esc(s.unit)}</p>
+        ${s.topic ? `<p class="ttopic">${esc(s.topic)}</p>` : ''}
+        <p class="row-meta"><span>10分</span><span>100点</span><span>問題${s.qPages}ページ</span></p>
+        <p class="tlinks">${links}</p>
+      </div>
+      <a class="dl" href="${MODES.q.file(s)}" download="${esc(dlName(s, 'q'))}" aria-label="${esc(s.unit)}の小テストを問題だけでダウンロード">${IC_DL}問題だけ<span class="dl-size">${mb(MODES.q.size(s))}</span></a>
+    </li>`;
+  }
+
+  function renderTests() {
+    const subs = CAT.subjects.filter((sub) => TESTS.some((s) => s.subject === sub.key));
+    if (!subs.some((sub) => sub.key === tui.subject)) tui.subject = subs[0].key;
+    const n = (g, k) => TESTS.filter((s) => s.grade === g && s.subject === k).length;
+    $('#tgrade').innerHTML = [1, 2, 3].map((g) =>
+      `<button type="button" data-g="${g}" aria-pressed="${g === tui.grade}">中学${g}年</button>`).join('');
+    $('#tsubject').innerHTML = subs.map((sub) =>
+      `<button type="button" data-k="${sub.key}" aria-pressed="${sub.key === tui.subject}"><span class="kanji" aria-hidden="true">${sub.kanji}</span>${sub.name}<span class="count">${n(tui.grade, sub.key)}</span></button>`).join('');
+    const list = TESTS.filter((s) => s.grade === tui.grade && s.subject === tui.subject);
+    const sub = SUBJ[tui.subject];
+    $('#tgroup').innerHTML = list.length
+      ? `<div class="group-head"><p class="group-title">中学${tui.grade}年・${sub.name}の小テスト<span class="n">${list.length}枚</span></p></div>
+        <ol>${list.map(tcardHTML).join('')}</ol>`
+      : `<div class="empty"><b>中学${tui.grade}年の${sub.name}の小テストは、いま準備しています。</b></div>`;
+  }
+
+  function initTests() {
+    if (!TESTS.length) { $('#tests').hidden = true; $('a[href="#tests"]').hidden = true; return; }
+    if (![1, 2, 3].includes(tui.grade)) tui.grade = 1;
+    renderTests();
+    $('#tests').addEventListener('click', (e) => {
+      const g = e.target.closest('#tgrade button[data-g]');
+      const k = e.target.closest('#tsubject button[data-k]');
+      if (g || k) {
+        if (g) tui.grade = Number(g.dataset.g);
+        if (k) tui.subject = k.dataset.k;
+        store.set('efica-tui', tui);
+        renderTests();
+        return;
+      }
+      const v = e.target.closest('[data-act="tview"]');
+      if (v) openViewer(BY_ID.get(v.closest('.row').dataset.id));
+    });
+  }
+
   /* ── はじまり ── */
   async function init() {
     if (/\bLine\//i.test(navigator.userAgent)) {
@@ -1019,11 +1075,14 @@
     }
     CAT.subjects.forEach((s) => { SUBJ[s.key] = s; });
     CAT.sheets.forEach((s) => BY_ID.set(s.id, s));
+    PRINTS = CAT.sheets.filter((s) => s.kind !== 'test');
+    TESTS = CAT.sheets.filter((s) => s.kind === 'test');
     if (!SUBJ[ui.subject]) ui.subject = 'math';
     if (![1, 2, 3].includes(ui.grade)) ui.grade = 1;
     if (!MODES[ui.mode]) ui.mode = 'q';
     plan.sheets = plan.sheets.filter((id) => BY_ID.has(id));
     initWords();
+    initTests();
     renderStats();
     renderAll();
     bindPrints();
